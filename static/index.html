@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ask your notes</title>
+<style>
+  :root { --paper:#F5F7FA; --ink:#1D2733; --muted:#5B6878; --line:#D5DCE5;
+          --accent:#3546A8; --error:#B42318; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink);
+         font:16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:720px; margin:0 auto; padding:48px 20px 80px; }
+  h1 { font-size:2rem; margin:0 0 4px; }
+  .lede { color:var(--muted); margin:0 0 32px; }
+  section { border-top:1px solid var(--line); padding:24px 0; }
+  h2 { font-size:1.05rem; margin:0 0 12px; }
+  textarea { width:100%; min-height:80px; padding:12px; font:inherit;
+             border:1px solid var(--line); border-radius:6px; background:#fff; }
+  button { font:inherit; font-weight:600; padding:10px 18px; border:0;
+           border-radius:6px; background:var(--accent); color:#fff;
+           cursor:pointer; margin-top:12px; }
+  button:disabled { opacity:.5; cursor:wait; }
+  button:focus-visible, textarea:focus-visible, input:focus-visible {
+           outline:3px solid #9AA8F0; outline-offset:2px; }
+  .status { color:var(--muted); margin:10px 0 0; min-height:1.5em; }
+  .status.error { color:var(--error); }
+  .answer { white-space:pre-wrap; background:#fff; border:1px solid var(--line);
+            border-radius:6px; padding:16px; }
+  .sources { list-style:none; padding:0; margin:16px 0 0; }
+  .sources li { display:grid; grid-template-columns:80px 1fr; gap:12px;
+                padding:12px 0; border-top:1px solid var(--line); }
+  .page { font-weight:700; color:var(--accent); }
+  .snippet { color:var(--muted); font-size:.92rem; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Ask your notes</h1>
+  <p class="lede">Upload a PDF, ask a question, and get an answer with the pages it came from.</p>
+
+  <section>
+    <h2>1. Upload a PDF</h2>
+    <input type="file" id="file" accept=".pdf">
+    <br><button id="uploadBtn">Upload and index</button>
+    <p class="status" id="uploadStatus">Already indexed: your last PDF. Upload only to switch documents.</p>
+  </section>
+
+  <section>
+    <h2>2. Ask a question</h2>
+    <textarea id="question" placeholder="For example: What are the benefits of CSS?"></textarea>
+    <button id="askBtn">Ask</button>
+    <p class="status" id="askStatus"></p>
+  </section>
+
+  <section id="result" hidden>
+    <h2>Answer</h2>
+    <div class="answer" id="answer"></div>
+    <ul class="sources" id="sources"></ul>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+function setStatus(el, text, isError = false) {
+  el.textContent = text;
+  el.classList.toggle("error", isError);
+}
+
+async function readJson(res) {
+  try { return await res.json(); } catch { return {}; }
+}
+
+$("uploadBtn").onclick = async () => {
+  const file = $("file").files[0];
+  if (!file) return setStatus($("uploadStatus"), "Choose a PDF first.", true);
+  const form = new FormData();
+  form.append("file", file);
+  $("uploadBtn").disabled = true;
+  setStatus($("uploadStatus"), "Reading and indexing the PDF…");
+  try {
+    const res = await fetch("/upload", { method: "POST", body: form });
+    const data = await readJson(res);
+    if (!res.ok) throw new Error(data.detail || "Upload failed. Check the terminal for details.");
+    setStatus($("uploadStatus"), `Ready: "${data.filename}" was split into ${data.chunks} searchable chunks.`);
+  } catch (err) {
+    setStatus($("uploadStatus"), err.message, true);
+  } finally {
+    $("uploadBtn").disabled = false;
+  }
+};
+
+$("askBtn").onclick = async () => {
+  const question = $("question").value.trim();
+  if (!question) return setStatus($("askStatus"), "Type a question first.", true);
+  $("askBtn").disabled = true;
+  $("result").hidden = true;
+  setStatus($("askStatus"), "Searching your notes and writing an answer. The first question can take a minute or two…");
+  try {
+    const res = await fetch("/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question }),
+    });
+    const data = await readJson(res);
+    if (!res.ok) throw new Error(data.detail || "The server hit an error. Check the terminal for details.");
+
+    $("answer").textContent = data.answer;
+    $("sources").innerHTML = "";
+    if (!data.answer.startsWith("I don't know")) {
+      for (const s of data.sources) {
+        const li = document.createElement("li");
+        li.innerHTML = `<span class="page">[${s.number}] p. ${s.page}</span><span class="snippet"></span>`;
+        li.querySelector(".snippet").textContent =
+          s.text.slice(0, 220) + (s.text.length > 220 ? "…" : "");
+        $("sources").appendChild(li);
+      }
+    }
+    $("result").hidden = false;
+    setStatus($("askStatus"), "");
+  } catch (err) {
+    setStatus($("askStatus"), err.message, true);
+  } finally {
+    $("askBtn").disabled = false;
+  }
+};
+</script>
+</body>
+</html>
