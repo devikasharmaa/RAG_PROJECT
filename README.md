@@ -23,7 +23,7 @@ Question
 ```
 RAG_PROJECT/
 ├── data/
-│   ├── documents/        PDFs (sample1.pdf = FSD Unit 2 notes)
+│   ├── documents/        your PDFs go here (not included in this repository)
 │   └── index/            FAISS index + chunks.json (generated, not in git)
 ├── src/
 │   ├── loader.py         PDF → pages
@@ -43,27 +43,34 @@ RAG_PROJECT/
 ## Setup
 
 1. Create and activate a virtual environment, then install packages:
+
 ```bash
    python3 -m venv venv
    source venv/bin/activate
    pip install -r requirements.txt
 ```
+
 2. Install [Ollama](https://ollama.com) and download the model:
+
 ```bash
    ollama pull llama3.1:8b
 ```
 
 ## Run
 
-Build the index for the sample notes:
+The PDFs used during development are not included in this repository. Put your own text-based PDF at `data/documents/sample1.pdf`, then build the index:
+
 ```bash
 python src/vector_store.py
 ```
 
 Start the server and open http://127.0.0.1:8000/ in a browser:
+
 ```bash
 python -m uvicorn api:app --app-dir src
 ```
+
+You can also upload any other PDF from the web page.
 
 API endpoints (interactive docs at http://127.0.0.1:8000/docs):
 
@@ -74,15 +81,18 @@ API endpoints (interactive docs at http://127.0.0.1:8000/docs):
 | `GET /health` | check the server is running |
 
 Upload from the terminal:
+
 ```bash
 curl -F "file=@/path/to/file.pdf" http://127.0.0.1:8000/upload
 ```
 
 ## Evaluation
 
+The test scripts below were written for the development document (Full Stack Development, Unit 2 notes on CSS). With a different PDF, edit the questions and expected pages in `src/evaluate.py`.
+
 ### 1. Retrieval and refusal tests (`python src/evaluate.py`)
 
-13 hand-written questions about the FSD notes: 5 answerable (with the expected page) and 8 that the notes do not answer (the system should say "I don't know").
+13 hand-written questions: 5 answerable (with the expected page) and 8 that the notes do not answer (the system should say "I don't know").
 
 | Version | Score |
 |---|---|
@@ -120,7 +130,7 @@ Both claims the judge flagged as unsupported were found in the notes (pages 4 an
 
 ## Known limitations
 
-- **Text inside images is not read.** About two-thirds of the sample notes are image-based slides, so topics like the box model cannot be answered. Fix: add OCR.
+- **Text inside images is not read.** About two-thirds of the development notes are image-based slides, so topics like the box model cannot be answered. Fix: add OCR.
 - **PDF only.** Word (.docx) support is not built yet.
 - **Citations are page-level**, not section-level.
 - **One document at a time.** Uploading a new PDF replaces the index.
@@ -132,6 +142,3 @@ Both claims the judge flagged as unsupported were found in the notes (pages 4 an
 
 - OCR for image-based pages
 - Word document support
-- Section-level citations (detect headings while loading)
-- Larger evaluation set across several documents
-- Official RAGAS library with a stronger judge model
