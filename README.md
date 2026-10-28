@@ -2,6 +2,17 @@
 
 Upload a PDF, ask a question in plain English, and get an answer grounded in the document, with the page numbers it came from. Everything runs locally on a laptop: no paid API, no data leaves the machine.
 
+## Demo
+
+Answering from the notes, with the pages it used:
+
+<img width="1140" height="836" alt="Screenshot 2026-10-29 at 3 11 28 AM" src="https://github.com/user-attachments/assets/57f4b15d-1413-4c00-97d5-a736632d9c7b" />
+
+Refusing a question the notes don't cover:
+
+<img width="946" height="797" alt="Screenshot 2026-10-29 at 3 13 22 AM" src="https://github.com/user-attachments/assets/f54a9088-348b-497b-9ebd-baed795d85ac" />
+
+
 ## How it works
 
 ```
