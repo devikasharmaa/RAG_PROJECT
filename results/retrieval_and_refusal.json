@@ -1,0 +1,473 @@
+{
+  "settings": {
+    "date": "2026-10-29 02:25",
+    "document": "Full Stack Development, Unit 2 notes (CSS)",
+    "chunks_in_index": 25,
+    "answer_model": "llama3.1:8b",
+    "embedding_model": "all-MiniLM-L6-v2",
+    "reranker_model": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+    "safety_threshold": 0.4,
+    "candidates_before_reranking": 20
+  },
+  "score": "12/13",
+  "results": [
+    {
+      "question": "What is CSS?",
+      "expected_pages": [
+        3
+      ],
+      "pages_found": [
+        3,
+        4,
+        4,
+        39
+      ],
+      "outcome": "answered",
+      "passed": true,
+      "answer": "CSS (Cascading Style Sheets) is the language we use to style an HTML document. [1]",
+      "sources": [
+        {
+          "page": 3,
+          "score": 0.758,
+          "rerank_score": 9.307
+        },
+        {
+          "page": 4,
+          "score": 0.697,
+          "rerank_score": 6.895
+        },
+        {
+          "page": 4,
+          "score": 0.649,
+          "rerank_score": 5.91
+        },
+        {
+          "page": 39,
+          "score": 0.597,
+          "rerank_score": 5.579
+        }
+      ]
+    },
+    {
+      "question": "What are the benefits of CSS?",
+      "expected_pages": [
+        4,
+        5
+      ],
+      "pages_found": [
+        4,
+        4,
+        5,
+        4
+      ],
+      "outcome": "answered",
+      "passed": true,
+      "answer": "The benefits of CSS include:\n• Separation of Content and Presentation [1]\n• Consistency Across Pages [2]\n• Improved Page Load Times [2]\n• Enhanced User Experience [2]\n• Greater Design Flexibility [3]\n• Accessibility [3]",
+      "sources": [
+        {
+          "page": 4,
+          "score": 0.65,
+          "rerank_score": 7.204
+        },
+        {
+          "page": 4,
+          "score": 0.71,
+          "rerank_score": 7.106
+        },
+        {
+          "page": 5,
+          "score": 0.687,
+          "rerank_score": 6.532
+        },
+        {
+          "page": 4,
+          "score": 0.672,
+          "rerank_score": 5.974
+        }
+      ]
+    },
+    {
+      "question": "What happens when selectors have different specificity?",
+      "expected_pages": [
+        17
+      ],
+      "pages_found": [
+        10,
+        17,
+        12,
+        16
+      ],
+      "outcome": "answered",
+      "passed": true,
+      "answer": "When there are two or more CSS rules that point to the same element, the selector with the highest specificity will \"win\", and its style declaration will be applied to that HTML element. [1]",
+      "sources": [
+        {
+          "page": 10,
+          "score": 0.725,
+          "rerank_score": 6.217
+        },
+        {
+          "page": 17,
+          "score": 0.672,
+          "rerank_score": 3.057
+        },
+        {
+          "page": 12,
+          "score": 0.543,
+          "rerank_score": -1.782
+        },
+        {
+          "page": 16,
+          "score": 0.481,
+          "rerank_score": -1.941
+        }
+      ]
+    },
+    {
+      "question": "What are CSS gradients?",
+      "expected_pages": [
+        22,
+        23,
+        24,
+        25,
+        26
+      ],
+      "pages_found": [
+        22,
+        2,
+        3,
+        39
+      ],
+      "outcome": "answered",
+      "passed": true,
+      "answer": "CSS gradients let you display smooth transitions between two or more specified colors. [1]",
+      "sources": [
+        {
+          "page": 22,
+          "score": 0.83,
+          "rerank_score": 8.99
+        },
+        {
+          "page": 2,
+          "score": 0.418,
+          "rerank_score": 2.326
+        },
+        {
+          "page": 3,
+          "score": 0.558,
+          "rerank_score": -0.129
+        },
+        {
+          "page": 39,
+          "score": 0.462,
+          "rerank_score": -2.353
+        }
+      ]
+    },
+    {
+      "question": "How do you add inline CSS to an HTML element?",
+      "expected_pages": [
+        7
+      ],
+      "pages_found": [
+        7,
+        9,
+        6,
+        3
+      ],
+      "outcome": "answered",
+      "passed": true,
+      "answer": "To use inline styles, add the style attribute to the relevant element. [1]",
+      "sources": [
+        {
+          "page": 7,
+          "score": 0.589,
+          "rerank_score": 5.977
+        },
+        {
+          "page": 9,
+          "score": 0.557,
+          "rerank_score": 2.572
+        },
+        {
+          "page": 6,
+          "score": 0.4,
+          "rerank_score": 1.85
+        },
+        {
+          "page": 3,
+          "score": 0.425,
+          "rerank_score": 1.175
+        }
+      ]
+    },
+    {
+      "question": "Who won the cricket World Cup in 2011?",
+      "expected_pages": [],
+      "pages_found": [
+        1,
+        16,
+        9,
+        14
+      ],
+      "outcome": "refused by the safety check",
+      "passed": true,
+      "answer": "I don't know. The document does not cover this.",
+      "sources": [
+        {
+          "page": 1,
+          "score": 0.174
+        },
+        {
+          "page": 16,
+          "score": 0.076
+        },
+        {
+          "page": 9,
+          "score": 0.07
+        },
+        {
+          "page": 14,
+          "score": 0.063
+        }
+      ]
+    },
+    {
+      "question": "How do I install Python on Windows?",
+      "expected_pages": [],
+      "pages_found": [
+        3,
+        4,
+        4,
+        4
+      ],
+      "outcome": "refused by the safety check",
+      "passed": true,
+      "answer": "I don't know. The document does not cover this.",
+      "sources": [
+        {
+          "page": 3,
+          "score": 0.023
+        },
+        {
+          "page": 4,
+          "score": 0.018
+        },
+        {
+          "page": 4,
+          "score": 0.011
+        },
+        {
+          "page": 4,
+          "score": 0.005
+        }
+      ]
+    },
+    {
+      "question": "What is the CSS box model?",
+      "expected_pages": [],
+      "pages_found": [
+        2,
+        3,
+        4,
+        4
+      ],
+      "outcome": "answered",
+      "passed": false,
+      "answer": "The box model is mentioned as one of the topics in the syllabus for UNIT – II, which is about Introduction to CSS. [1]\n\nThe box model is not explicitly defined in the provided context passages, but it is listed as one of the topics to be covered in the course.",
+      "sources": [
+        {
+          "page": 2,
+          "score": 0.598,
+          "rerank_score": 4.416
+        },
+        {
+          "page": 3,
+          "score": 0.573,
+          "rerank_score": 0.61
+        },
+        {
+          "page": 4,
+          "score": 0.573,
+          "rerank_score": -1.737
+        },
+        {
+          "page": 4,
+          "score": 0.51,
+          "rerank_score": -1.808
+        }
+      ]
+    },
+    {
+      "question": "What is cascading effect?",
+      "expected_pages": [],
+      "pages_found": [
+        4,
+        3,
+        7,
+        22
+      ],
+      "outcome": "refused by the safety check",
+      "passed": true,
+      "answer": "I don't know. The document does not cover this.",
+      "sources": [
+        {
+          "page": 4,
+          "score": 0.357
+        },
+        {
+          "page": 3,
+          "score": 0.337
+        },
+        {
+          "page": 7,
+          "score": 0.332
+        },
+        {
+          "page": 22,
+          "score": 0.251
+        }
+      ]
+    },
+    {
+      "question": "What is the difference between relative and absolute positioning in CSS?",
+      "expected_pages": [],
+      "pages_found": [
+        52,
+        5,
+        4,
+        22
+      ],
+      "outcome": "refused by the model",
+      "passed": true,
+      "answer": "I don't know. The document does not cover this.",
+      "sources": [
+        {
+          "page": 52,
+          "score": 0.72,
+          "rerank_score": 3.966
+        },
+        {
+          "page": 5,
+          "score": 0.313,
+          "rerank_score": -2.965
+        },
+        {
+          "page": 4,
+          "score": 0.379,
+          "rerank_score": -4.631
+        },
+        {
+          "page": 22,
+          "score": 0.309,
+          "rerank_score": -4.944
+        }
+      ]
+    },
+    {
+      "question": "What is the difference between inline, block, and inline-block elements in CSS?",
+      "expected_pages": [],
+      "pages_found": [
+        7,
+        4,
+        3,
+        5
+      ],
+      "outcome": "refused by the model",
+      "passed": true,
+      "answer": "I don't know. The document does not cover this.",
+      "sources": [
+        {
+          "page": 7,
+          "score": 0.413,
+          "rerank_score": 1.002
+        },
+        {
+          "page": 4,
+          "score": 0.474,
+          "rerank_score": -2.903
+        },
+        {
+          "page": 3,
+          "score": 0.437,
+          "rerank_score": -3.147
+        },
+        {
+          "page": 5,
+          "score": 0.386,
+          "rerank_score": -3.192
+        }
+      ]
+    },
+    {
+      "question": "What is the difference between a class and an ID in CSS?",
+      "expected_pages": [],
+      "pages_found": [
+        4,
+        3,
+        6,
+        5
+      ],
+      "outcome": "refused by the model",
+      "passed": true,
+      "answer": "I don't know. The document does not cover this.",
+      "sources": [
+        {
+          "page": 4,
+          "score": 0.494,
+          "rerank_score": -2.032
+        },
+        {
+          "page": 3,
+          "score": 0.496,
+          "rerank_score": -3.429
+        },
+        {
+          "page": 6,
+          "score": 0.565,
+          "rerank_score": -3.988
+        },
+        {
+          "page": 5,
+          "score": 0.377,
+          "rerank_score": -4.468
+        }
+      ]
+    },
+    {
+      "question": "What is the difference between a pseudo-class and a pseudo-element in CSS?",
+      "expected_pages": [],
+      "pages_found": [
+        6,
+        4,
+        10,
+        3
+      ],
+      "outcome": "refused by the model",
+      "passed": true,
+      "answer": "I don't know. The document does not cover this.",
+      "sources": [
+        {
+          "page": 6,
+          "score": 0.506,
+          "rerank_score": -3.027
+        },
+        {
+          "page": 4,
+          "score": 0.458,
+          "rerank_score": -3.571
+        },
+        {
+          "page": 10,
+          "score": 0.396,
+          "rerank_score": -3.949
+        },
+        {
+          "page": 3,
+          "score": 0.496,
+          "rerank_score": -4.041
+        }
+      ]
+    }
+  ]
+}

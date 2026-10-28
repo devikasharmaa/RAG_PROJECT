@@ -3,7 +3,8 @@ import json
 import requests
 
 from answer_generator import generate_answer, OLLAMA_URL, MODEL_NAME, IDK
-from evaluate import TESTS
+from evaluate import DOCUMENT, TESTS
+from report import cell, escape, inline, quote, run_info, save, settings_table, source_summary
 
 JUDGE_MODEL = MODEL_NAME
 
@@ -49,11 +50,11 @@ def faithfulness(answer, sources):
     context = "\n\n".join(f"[{n}] {s['text']}" for n, s in enumerate(sources, 1))
     claims = ask_judge(FAITHFULNESS_PROMPT.format(context=context, answer=answer)).get("claims", [])
     if not claims:
-        return None, []
+        return None, [], 0
     unsupported = [c.get("claim", "") for c in claims
                    if str(c.get("supported")).lower() != "true"]
     score = (len(claims) - len(unsupported)) / len(claims)
-    return score, unsupported
+    return score, unsupported, len(claims)
 
 
 def relevancy(question, answer):
@@ -65,17 +66,28 @@ def relevancy(question, answer):
     return (rating - 1) / 4, result.get("reason", "")  # 1-5 -> 0-1
 
 
+def average(scores):
+    return sum(scores) / len(scores) if scores else None
+
+
+def rounded(score):
+    return None if score is None else round(score, 3)
+
+
 def run():
-    faith_scores, rel_scores = [], []
+    info = run_info(DOCUMENT, judge_model=JUDGE_MODEL)
+    faith_scores, rel_scores, results = [], [], []
     for t in TESTS:
         if not t["pages"]:
             continue  # only grade questions the notes can answer
         answer, sources = generate_answer(t["question"])
         if answer.startswith(IDK):
             print("SKIP (refused) |", t["question"])
+            results.append({"question": t["question"], "skipped": True,
+                            "answer": answer, "sources": source_summary(sources)})
             continue
 
-        f, unsupported = faithfulness(answer, sources)
+        f, unsupported, claims = faithfulness(answer, sources)
         r, reason = relevancy(t["question"], answer)
         if f is not None:
             faith_scores.append(f)
@@ -91,10 +103,96 @@ def run():
             print(f"   NOT SUPPORTED: {claim}")
         print()
 
-    if faith_scores:
-        print(f"AVERAGE FAITHFULNESS: {sum(faith_scores) / len(faith_scores):.2f}")
-    if rel_scores:
-        print(f"AVERAGE RELEVANCY:    {sum(rel_scores) / len(rel_scores):.2f}")
+        results.append({
+            "question": t["question"],
+            "faithfulness": rounded(f),
+            "claims_checked": claims,
+            "unsupported_claims": unsupported,
+            "relevancy": rounded(r),
+            "judge_reason": reason,
+            "answer": answer,
+            "sources": source_summary(sources),
+        })
+
+    faith, rel = average(faith_scores), average(rel_scores)
+    if faith is not None:
+        print(f"AVERAGE FAITHFULNESS: {faith:.2f}")
+    if rel is not None:
+        print(f"AVERAGE RELEVANCY:    {rel:.2f}")
+
+    data = {"settings": info, "average_faithfulness": rounded(faith),
+            "average_relevancy": rounded(rel), "results": results}
+    save("answer_quality", data, to_markdown(info, results, faith, rel))
+
+
+# ---------- results file ----------
+
+def score_text(score):
+    return "n/a" if score is None else f"{score:.2f}"
+
+
+def claims_text(r):
+    if not r["claims_checked"]:
+        return "n/a"
+    supported = r["claims_checked"] - len(r["unsupported_claims"])
+    return f"{supported} of {r['claims_checked']}"
+
+
+def to_markdown(info, results, faith, rel):
+    lines = [
+        "# Answer quality (RAGAS-style)",
+        "",
+        "Output of `python src/judge.py`. Only the questions the notes can answer are graded. "
+        "The judge is the same local model that writes the answers.",
+        "",
+        "- **Faithfulness**: the answer is split into claims, and each claim is checked "
+        "against the passages the answer was based on. The score is the share of claims supported.",
+        "- **Relevancy**: the judge rates from 1 to 5 how well the answer addresses "
+        "the question, converted to 0–1.",
+        "",
+        settings_table(info),
+        "",
+        "## Averages",
+        "",
+        "| Metric | Score |",
+        "|---|---|",
+        f"| Faithfulness | {score_text(faith)} |",
+        f"| Relevancy | {score_text(rel)} |",
+        "",
+        "## Per question",
+        "",
+        "| # | Question | Faithfulness | Claims supported | Relevancy |",
+        "|---|---|---|---|---|",
+    ]
+    for n, r in enumerate(results, start=1):
+        if r.get("skipped"):
+            lines.append(f"| {n} | {cell(r['question'])} | skipped: the system refused | | |")
+        else:
+            lines.append(
+                f"| {n} | {cell(r['question'])} | {score_text(r['faithfulness'])} "
+                f"| {claims_text(r)} | {score_text(r['relevancy'])} |"
+            )
+
+    lines += ["", "## Details", ""]
+    for n, r in enumerate(results, start=1):
+        lines += [f"### {n}. {escape(r['question'])}", ""]
+        if r.get("skipped"):
+            lines += ["Skipped: the system refused to answer.", "", quote(r["answer"]), ""]
+            continue
+        if r["claims_checked"]:
+            lines.append(f"- Faithfulness: {score_text(r['faithfulness'])} "
+                         f"({claims_text(r)} claims supported)")
+        else:
+            lines.append("- Faithfulness: n/a (the judge returned no claims)")
+        relevancy_line = f"- Relevancy: {score_text(r['relevancy'])}"
+        if r["judge_reason"]:
+            relevancy_line += f". Judge's reason: {inline(r['judge_reason'])}"
+        lines.append(relevancy_line)
+        if r["unsupported_claims"]:
+            lines.append("- Claims the judge marked as not supported:")
+            lines += [f"  - {inline(c)}" for c in r["unsupported_claims"]]
+        lines += ["", "**Answer:**", "", quote(r["answer"]), ""]
+    return "\n".join(lines)
 
 
 if __name__ == "__main__":

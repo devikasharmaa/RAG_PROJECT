@@ -25,6 +25,7 @@ RAG_PROJECT/
 ├── data/
 │   ├── documents/        your PDFs go here (not included in this repository)
 │   └── index/            FAISS index + chunks.json (generated, not in git)
+├── results/              saved output of the two tests (Markdown + JSON)
 ├── src/
 │   ├── loader.py         PDF → pages
 │   ├── chunker.py        pages → chunks
@@ -35,7 +36,8 @@ RAG_PROJECT/
 │   ├── answer_generator.py   prompt + Ollama call + safety check
 │   ├── api.py            FastAPI app (/ask, /upload, /health, demo page)
 │   ├── evaluate.py       retrieval + refusal test set
-│   └── judge.py          RAGAS-style faithfulness and relevancy scores
+│   ├── judge.py          RAGAS-style faithfulness and relevancy scores
+│   └── report.py         saves test results to results/
 ├── static/index.html     demo web page
 └── requirements.txt
 ```
@@ -90,7 +92,17 @@ curl -F "file=@/path/to/file.pdf" http://127.0.0.1:8000/upload
 
 The test scripts below were written for the development document (Full Stack Development, Unit 2 notes on CSS). With a different PDF, edit the questions and expected pages in `src/evaluate.py`.
 
+Both scripts save their full output in [`results/`](results/): the settings used, every question, the answer, the pages it came from and the scores. The text of the retrieved passages is left out, because the notes are not part of this repository. To reproduce the results, put the CSS notes at `data/documents/sample1.pdf`, build the index and run both scripts (this overwrites the files in `results/`):
+
+```bash
+python src/vector_store.py
+python src/evaluate.py
+python src/judge.py
+```
+
 ### 1. Retrieval and refusal tests (`python src/evaluate.py`)
+
+Full output: [results/retrieval_and_refusal.md](results/retrieval_and_refusal.md)
 
 13 hand-written questions: 5 answerable (with the expected page) and 8 that the notes do not answer (the system should say "I don't know").
 
@@ -104,6 +116,8 @@ The test scripts below were written for the development document (Full Stack Dev
 The one remaining "fail" (CSS box model) is a correct answer phrased in a way the keyword checker does not recognise: the model says the topic is only listed in the syllabus, not explained.
 
 ### 2. Answer quality (`python src/judge.py`)
+
+Full output: [results/answer_quality.md](results/answer_quality.md)
 
 RAGAS-style metrics, implemented directly with llama3.1:8b as the judge:
 
