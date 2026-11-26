@@ -9,6 +9,14 @@ MIN_CHUNK_LENGTH = 60
 CANDIDATES = 20
 IDK = "I don't know. The document does not cover this."
 
+
+class LLMUnavailableError(RuntimeError):
+    """Ollama could not produce an answer. `sources` holds the passages found anyway."""
+
+    def __init__(self, message, sources):
+        super().__init__(message)
+        self.sources = sources
+
 SYSTEM_PROMPT = (
     "You answer questions using ONLY the numbered context passages given. "
     "Rules: 1) Use only facts from the passages, never your own knowledge. "
@@ -45,16 +53,35 @@ def generate_answer(question, k=4):
          "content": f"Context:\n{build_context(results)}\n\nQuestion: {question}"},
     ]
 
-    response = requests.post(
-        OLLAMA_URL,
-        json={"model": MODEL_NAME, "messages": messages,
-              "stream": False, "options": {"temperature": 0}},
-        timeout=300,
-    )
-    response.raise_for_status()
-    answer = response.json()["message"]["content"].strip()
+    return call_ollama(messages, results), results
 
-    return answer, results
+
+def call_ollama(messages, sources):
+    try:
+        response = requests.post(
+            OLLAMA_URL,
+            json={"model": MODEL_NAME, "messages": messages,
+                  "stream": False, "options": {"temperature": 0}},
+            timeout=300,
+        )
+    except requests.exceptions.ConnectionError:
+        raise LLMUnavailableError(
+            "The answer model is not running. Start Ollama (open the Ollama app "
+            "or run `ollama serve`) and ask again.", sources)
+    except requests.exceptions.Timeout:
+        raise LLMUnavailableError(
+            "The answer model took too long to reply. It may still be loading; "
+            "try again in a minute.", sources)
+
+    if response.status_code == 404:
+        raise LLMUnavailableError(
+            f"Ollama is running but the model '{MODEL_NAME}' is not downloaded. "
+            f"Run `ollama pull {MODEL_NAME}`.", sources)
+    if not response.ok:
+        raise LLMUnavailableError(
+            f"Ollama returned an error ({response.status_code}).", sources)
+
+    return response.json()["message"]["content"].strip()
 
 
 if __name__ == "__main__":

@@ -24,6 +24,8 @@ def load_pdf(file_path):
 
 
 if __name__ == "__main__":
-    pages = load_pdf("data/documents/sample1.pdf")
+    from config import DEFAULT_PDF
+
+    pages = load_pdf(DEFAULT_PDF)
     print("Total pages:", len(pages))
     print(pages[0])

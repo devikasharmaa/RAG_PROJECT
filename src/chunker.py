@@ -24,7 +24,9 @@ def chunk_pages(pages, chunk_size=500, chunk_overlap=50, min_length=60):
 
 
 if __name__ == "__main__":
-    pages = load_pdf("data/documents/sample1.pdf")
+    from config import DEFAULT_PDF
+
+    pages = load_pdf(DEFAULT_PDF)
     chunks = chunk_pages(pages)
     print("Total chunks:", len(chunks))
     print("First chunk:", chunks[0])

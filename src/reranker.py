@@ -2,8 +2,6 @@ import os
 os.environ.setdefault("OMP_NUM_THREADS", "1")
 os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
 
-from sentence_transformers import CrossEncoder
-
 MODEL_NAME = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 _model = None
 
@@ -11,6 +9,8 @@ _model = None
 def get_model():
     global _model
     if _model is None:
+        # Imported here so modules (and tests) that never embed don't load torch
+        from sentence_transformers import CrossEncoder
         # CPU keeps GPU memory free for the Ollama model
         _model = CrossEncoder(MODEL_NAME, device="cpu")
     return _model

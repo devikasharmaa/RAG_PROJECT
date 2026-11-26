@@ -46,10 +46,13 @@ RAG_PROJECT/
 │   ├── reranker.py       cross-encoder re-ranking
 │   ├── answer_generator.py   prompt + Ollama call + safety check
 │   ├── api.py            FastAPI app (/ask, /upload, /health, demo page)
+│   ├── upload_limit.py   rejects oversized uploads while they arrive
+│   ├── config.py         paths and limits (overridable with environment variables)
 │   ├── evaluate.py       retrieval + refusal test set
 │   ├── judge.py          RAGAS-style faithfulness and relevancy scores
 │   └── report.py         saves test results to results/
 ├── static/index.html     demo web page
+├── tests/                pytest unit and API tests (no model or Ollama needed)
 └── requirements.txt
 ```
 
@@ -90,14 +93,39 @@ API endpoints (interactive docs at http://127.0.0.1:8000/docs):
 | Endpoint | What it does |
 |---|---|
 | `POST /ask` | `{"question": "..."}` → answer + sources (page, score, text) |
-| `POST /upload` | upload a PDF; replaces the current index |
+| `POST /upload` | upload a PDF (max 20 MB); replaces the current index |
 | `GET /health` | check the server is running |
+
+Errors are specific so problems are easy to tell apart:
+
+| Situation | Response |
+|---|---|
+| File over the size limit | `413` (stopped while uploading, before it fills the disk) |
+| Not a PDF, damaged, or password-protected | `400` with the reason |
+| PDF with no text layer (scanned) | `400` |
+| `/ask` before any PDF is indexed | `409` "Upload a PDF first" |
+| Ollama not running, model not pulled, or timed out | `503` with what to do, **plus the passages that were found**, which the web page still shows |
+| Anything else | `500` and a traceback in the terminal (a real bug, not hidden) |
+
+Settings (environment variables): `RAG_MAX_UPLOAD_MB` (default 20), `RAG_DATA_DIR` (default `data/`).
 
 Upload from the terminal:
 
 ```bash
 curl -F "file=@/path/to/file.pdf" http://127.0.0.1:8000/upload
 ```
+
+## Tests
+
+```bash
+pytest
+```
+
+The tests fake the embedding model, the re-ranker and Ollama, so they run in about two seconds without downloading anything. They cover:
+
+- `clean_text()` and `chunk_pages()` (page numbers kept, title-only chunks dropped, chunk size, overlap)
+- every `/upload` and `/ask` error case in the table above
+- **concurrent requests**: 20 uploads switching between two PDFs while 200 questions are asked in parallel. Before the fix this failed every run (half-written `chunks.json`, or the index being cleared in the middle of a search). Now it passes.
 
 ## Evaluation
 
@@ -151,6 +179,7 @@ Both claims the judge flagged as unsupported were found in the notes (pages 4 an
 - **Re-ranker added** after a retrieval miss on a second PDF (AI Ethics): the chunk listing "three frameworks for AI and the law" was not in the top 4. After re-ranking it moved to #1 and the question was answered correctly.
 - **llama3.2 (3B) vs llama3.1 (8B)**: the smaller model filled in explanations from its own knowledge when a topic was only mentioned (e.g. relative vs absolute positioning). The 8B model correctly refused.
 - **Embeddings run on CPU** so the 8B model has enough GPU memory on an M2 MacBook Air.
+- **Safe concurrent requests**: the loaded index and its chunks are kept together and swapped in one step after a new upload is fully indexed. Questions asked during an upload keep using the old document instead of failing, uploads run one at a time behind a lock, and index files are written to a temp file and then renamed, so they are never read half-written.
 - **`OMP_NUM_THREADS=1`** is set in code to stop a crash caused by PyTorch and FAISS both using OpenMP on macOS.
 
 ## Known limitations
@@ -159,6 +188,7 @@ Both claims the judge flagged as unsupported were found in the notes (pages 4 an
 - **PDF only.** Word (.docx) support is not built yet.
 - **Citations are page-level**, not section-level.
 - **One document at a time.** Uploading a new PDF replaces the index.
+- **Single server process.** The upload lock lives in memory, so run one uvicorn worker (the default). Several workers would need a file lock or a proper database.
 - **The judge is the same small model** that writes the answers, and it is noisy: the same answer received different faithfulness scores across runs. A larger, separate judge model would be more reliable.
 - **Small test set** (13 questions on one document).
 - **Slow on a laptop**: the first question after a break can take a few minutes while the model loads.

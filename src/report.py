@@ -3,12 +3,13 @@ import os
 import re
 from datetime import datetime
 
+from config import PROJECT_ROOT
 from answer_generator import CANDIDATES, MIN_SCORE, MODEL_NAME
 from embeddings import MODEL_NAME as EMBEDDING_MODEL
 from reranker import MODEL_NAME as RERANKER_MODEL
 from vector_store import load_index
 
-RESULTS_DIR = "results"
+RESULTS_DIR = os.path.join(PROJECT_ROOT, "results")
 
 # `inline code` and ```code blocks``` inside an answer are shown exactly as written
 CODE = re.compile(r"(```.*?```|`[^`\n]*`)", re.DOTALL)
